@@ -1,3 +1,14 @@
+/**
+ * @file Memory.hpp
+ * @author Daniel Atanasov (daniel.a.atanasov97@gmail.com)
+ * @brief Basic allocators
+ * @version 0.1
+ * @date 2021-12-09
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
+
 namespace mem
 {
 struct Block
@@ -9,7 +20,7 @@ struct Block
     {
         return data != null;
     }
-    
+
     implicit Block(void * data, Uint64 size) : data(data), size(size)
     {
 
@@ -26,12 +37,19 @@ struct Block
 
 struct SystemAllocator
 {
+    /**
+     * @return A pointer to the global instance of this allocator
+     */
     static SystemAllocator * instance()
     {
         static SystemAllocator instance_;
         return &instance_;
     }
 
+    /**
+     * @param size Requested size of the allocation
+     * @return An allocated block of memory
+     */
     mem::Block allocate(Int64 size)
     {
         void * data = sys::allocate(size);
@@ -42,6 +60,13 @@ struct SystemAllocator
         return mem::Block{};
     }
 
+    /**
+     * @brief Tries to grow a block of memory inplace
+     *
+     * @param block A block of memory
+     * @param size The new requested size of the block
+     * @return Whether the allocator was successful in growin the block
+     */
     Bool grow(mem::Block & block, Int64 size)
     {
         Bool success = sys::reallocate(block.data, size);
@@ -52,12 +77,21 @@ struct SystemAllocator
         return success;
     }
 
+    /**
+     * @brief Destroy and invalidate a block of memory
+     * 
+     * @param block The block to deallocate
+     */
     void deallocate(mem::Block & block)
     {
         sys::deallocate(block.data);
         block = mem::Block{};
     }
 
+    /**
+     * @param block A block of memory
+     * @return Whether the block has been allocated by this allocator
+     */
     Bool owns(mem::Block & block)
     {
         return block.data != null;
@@ -67,12 +101,19 @@ struct SystemAllocator
 template <typename A, typename B>
 struct FallbackAllocator : private A, private B
 {
+    /**
+     * @return A pointer to the global instance of this allocator
+     */
     static FallbackAllocator * instance()
     {
         static FallbackAllocator instance_;
         return &instance_;
     }
 
+    /**
+     * @param size Requested size of the allocation
+     * @return An allocated block of memory
+     */
     mem::Block allocate(Int64 size)
     {
         mem::Block block = A::allocate(size);
@@ -83,6 +124,13 @@ struct FallbackAllocator : private A, private B
         return B::allocate(size);
     }
 
+    /**
+     * @brief Tries to grow a block of memory inplace
+     *
+     * @param block A block of memory
+     * @param size The new requested size of the block
+     * @return Whether the allocator was successful in growin the block
+     */
     Bool grow(mem::Block & block, Int64 size)
     {
         if (A::owns(block))
@@ -95,6 +143,11 @@ struct FallbackAllocator : private A, private B
         }
     }
 
+    /**
+     * @brief Destroy and invalidate a block of memory
+     * 
+     * @param block The block to deallocate
+     */
     void deallocate(mem::Block & block)
     {
         if (A::owns(block))
@@ -107,6 +160,10 @@ struct FallbackAllocator : private A, private B
         }
     }
 
+    /**
+     * @param block A block of memory
+     * @return Whether the block has been allocated by this allocator
+     */
     Bool owns(mem::Block & block)
     {
         return A::owns(block) or B::owns(block);
@@ -116,12 +173,19 @@ struct FallbackAllocator : private A, private B
 template <Uint64 T, typename A, typename B>
 struct ThresholdAllocator : private A, private B
 {
+    /**
+     * @return A pointer to the global instance of this allocator
+     */
     static ThresholdAllocator * instance()
     {
         static ThresholdAllocator instance_;
         return &instance_;
     }
 
+    /**
+     * @param size Requested size of the allocation
+     * @return An allocated block of memory
+     */
     mem::Block allocate(Int64 size)
     {
         if (size < T)
@@ -134,6 +198,13 @@ struct ThresholdAllocator : private A, private B
         }
     }
 
+    /**
+     * @brief Tries to grow a block of memory inplace
+     *
+     * @param block A block of memory
+     * @param size The new requested size of the block
+     * @return Whether the allocator was successful in growin the block
+     */
     Bool grow(mem::Block & block, Int64 size)
     {
         if (block.size < T)
@@ -153,6 +224,11 @@ struct ThresholdAllocator : private A, private B
         }
     }
 
+    /**
+     * @brief Destroy and invalidate a block of memory
+     * 
+     * @param block The block to deallocate
+     */
     void deallocate(mem::Block & block)
     {
         if (block.size < T)
@@ -165,6 +241,10 @@ struct ThresholdAllocator : private A, private B
         }
     }
 
+    /**
+     * @param block A block of memory
+     * @return Whether the block has been allocated by this allocator
+     */
     Bool owns(mem::Block & block)
     {
         if (block.size < T)
