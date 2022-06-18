@@ -39,7 +39,7 @@ protected:
      * 
      * @param data New pointer to first element
      */
-    void set_data(Pointer data)
+    macro void set_data(Pointer data)
     {
         data_ = data;
     }
@@ -49,7 +49,7 @@ protected:
      * 
      * @param data New size
      */
-    void set_size(Uint64 size)
+    macro void set_size(Uint64 size)
     {
         size_ = size;
     }
@@ -61,7 +61,7 @@ public:
      * @param data Pointer to the first element in the span
      * @param size Number of elements in this span
      */
-    Span(Pointer data, Uint64 size) : data_(data), size_(size)
+    implicit macro Span(Pointer data, Uint64 size) : data_(data), size_(size)
     {
     }
 
@@ -71,14 +71,14 @@ public:
      * @param begin Pointer to the first element in the span
      * @param end Pointer to one past the last element in the span
      */
-    Span(Pointer begin, Pointer end) : Span(begin, end - begin)
+    implicit macro Span(Pointer begin, Pointer end) : Span(begin, end - begin)
     {
     }
 
     /**
      * @return Number of elements in this span
      */
-    Uint64 size() const
+    macro Uint64 size() const
     {
         return size_;
     }
@@ -86,7 +86,7 @@ public:
     /**
      * @return Pointer to the first element in the span
      */
-    ConstPointer data() const
+    macro ConstPointer data() const
     {
         return data_;
     }
@@ -94,7 +94,7 @@ public:
     /**
      * @return Pointer to the first element in the span
      */
-    Pointer data()
+    macro Pointer data()
     {
         return data_;
     }
@@ -102,7 +102,7 @@ public:
     /**
      * @return Pointer to the first element in the span
      */
-    ConstPointer begin() const
+    macro ConstPointer begin() const
     {
         return data_;
     }
@@ -110,7 +110,7 @@ public:
     /**
      * @return Pointer to the first element in the span
      */
-    Pointer begin()
+    macro Pointer begin()
     {
         return data_;
     }
@@ -118,7 +118,7 @@ public:
     /**
      * @return Pointer to one past the last element in the span
      */
-    ConstPointer end() const
+    macro ConstPointer end() const
     {
         return data_ + size_;
     }
@@ -126,7 +126,7 @@ public:
     /**
      * @return Pointer to one past the last element in the span
      */
-    Pointer end()
+    macro Pointer end()
     {
         return data_ + size_;
     }
@@ -135,7 +135,7 @@ public:
      * @param idx 
      * @return Item at index idx
      */
-    ConstReference at(Int64 idx) const
+    macro ConstReference at(Int64 idx) const
     {
         assert(idx >= 0);
         
@@ -146,7 +146,7 @@ public:
      * @param idx 
      * @return Item at index idx
      */
-    Reference at(Int64 idx)
+    macro Reference at(Int64 idx)
     {
         assert(idx >= 0);
         
@@ -157,7 +157,7 @@ public:
      * @param idx 
      * @return Item at index idx
      */
-    ConstReference operator[](Int64 idx) const
+    macro ConstReference operator[](Int64 idx) const
     {
         assert(idx >= 0);
         
@@ -168,7 +168,7 @@ public:
      * @param idx 
      * @return Item at index idx
      */
-    Reference operator[](Int64 idx)
+    macro Reference operator[](Int64 idx)
     {
         assert(idx >= 0);
         
@@ -180,7 +180,7 @@ public:
      * @param stop
      * @return Sub-span from start to stop
      */
-    Span<T const> middle(Int64 start, Int64 stop) const
+    macro Span<T const> middle(Int64 start, Int64 stop) const
     {
         assert(start <= stop);
         assert(start >= 0);
@@ -194,7 +194,7 @@ public:
      * @param stop
      * @return Sub-span from start to stop
      */
-    Span<T> middle(Int64 start, Int64 stop)
+    macro Span<T> middle(Int64 start, Int64 stop)
     {
         assert(start <= stop);
         assert(start >= 0);
@@ -207,7 +207,7 @@ public:
      * @param stop
      * @return Sub-span from beginning to stop
      */
-    Span<T const> left(Int64 stop) const
+    macro Span<T const> left(Int64 stop) const
     {
         assert(stop >= 0);
         
@@ -218,7 +218,7 @@ public:
      * @param stop
      * @return Sub-span from beginning to stop
      */
-    Span<T> left(Int64 stop)
+    macro Span<T> left(Int64 stop)
     {
         assert(stop >= 0);
         
@@ -229,7 +229,7 @@ public:
      * @param start
      * @return Sub-span from start to the end
      */
-    Span<T const> right(Int64 start) const
+    macro Span<T const> right(Int64 start) const
     {
         assert(start >= 0);
         
@@ -240,87 +240,83 @@ public:
      * @param start
      * @return Sub-span from start to the end
      */
-    Span<T> right(Int64 start)
+    macro Span<T> right(Int64 start)
     {
         assert(start >= 0);
         
         return middle(start, size_);
     }
 
-    Span<T> const & me() const
+    macro Span<T> const & me() const
     {
         return *this;
     }
 
-    Span<T> & me()
+    macro Span<T> & me()
     {
         return *this;
     }
 
     template <typename F>
-    Span<T> const & operator<<(iterate::visitor<F, iterate::forward> f) const
+    macro void operator<<(iterate::visitor<F, iterate::forward> f) const
     {
         T * b = data();
         T * e = data() + size();
         while (b != e) f(*b++);
-        return *this;
     }
 
     template <typename F>
-    Span<T> & operator<<(iterate::visitor<F, iterate::forward> f)
+    macro void operator<<(iterate::visitor<F, iterate::forward> f)
     {
         T * b = data();
         T * e = data() + size();
         while (b != e) f(*b++);
-        return *this;
     }
 
     template <typename F>
-    Span<T> const & operator<<(iterate::visitor<F, iterate::backward> f) const
+    macro void operator<<(iterate::visitor<F, iterate::backward> f) const
     {
         T * b = data();
         T * e = data() + size();
         while (b != e) f(*--e);
-        return *this;
     }
 
     template <typename F>
-    Span<T> & operator<<(iterate::visitor<F, iterate::backward> f)
+    macro void operator<<(iterate::visitor<F, iterate::backward> f)
     {
         T * b = data();
         T * e = data() + size();
         while (b != e) f(*--e);
-        return *this;
     }
 
     /**
      * @brief Default copy assignment operator
      */
-    Span<T> & operator=(Span const & other) = default;
+    macro Span<T> & operator=(Span const & other) = default;
     
     /**
      * @brief Default move assignment operator
      */
-    Span<T> & operator=(Span && other) = default;
+    macro Span<T> & operator=(Span && other) = default;
 
     /**
      * @brief Default constructor
      */
-    implicit Span() = default;
+    implicit macro Span() = default;
 
     /**
      * @brief Default copy constructor
      */
-    implicit Span(Span const & other) = default;
+    implicit macro Span(Span const & other) = default;
     
     /**
      * @brief Default move constructor
      */
-    implicit Span(Span && other) = default;
+    implicit macro Span(Span && other) = default;
 
     /**
      * @brief Default destructor
      */
-    implicit ~Span() = default;
+    implicit macro ~Span() = default;
 };
 }

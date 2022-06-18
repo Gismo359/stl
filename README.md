@@ -27,13 +27,13 @@ struct Allocator
     mem::Block allocate(Int64 size);
 
     /**
-     * @brief Tries to grow a block of memory inplace
+     * @brief Tries to reallocate a block of memory inplace
      *
      * @param block A block of memory
      * @param size The new requested size of the block
-     * @return Whether the allocator was successful in growin the block
+     * @return Whether the allocator was successful in reallocatein the block
      */
-    Bool grow(mem::Block & block, Int64 size);
+    Bool reallocate(mem::Block & block, Int64 size);
 
     /**
      * @brief Destroy and invalidate a block of memory
@@ -52,7 +52,7 @@ struct Allocator
 
 All methods are mandatory, however only `Allocator::allocate()` and `Allocate::deallocate()` are required to have meaningful implementations:
  - `Allocator::instance()` may always return `null` if a global instance does not or cannot exist
- - `Allocator::grow` may always return `false` if the allocator does not support the operation
+ - `Allocator::reallocate` may always return `false` if the allocator does not support the operation
  - `Allocator::owns()` may always return `false` if the allocator cannot determine memory owndership
 
 Allocators can be composed and nested via templates:
@@ -84,21 +84,21 @@ struct FallbackAllocator : private A, private B
     }
 
     /**
-     * @brief Tries to grow a block of memory inplace
+     * @brief Tries to reallocate a block of memory inplace
      *
      * @param block A block of memory
      * @param size The new requested size of the block
-     * @return Whether the allocator was successful in growin the block
+     * @return Whether the allocator was successful in reallocatein the block
      */
-    Bool grow(mem::Block & block, Int64 size)
+    Bool reallocate(mem::Block & block, Int64 size)
     {
         if (A::owns(block))
         {
-            return A::grow(block, size);
+            return A::reallocate(block, size);
         }
         else
         {
-            return B::grow(block, size);
+            return B::reallocate(block, size);
         }
     }
 

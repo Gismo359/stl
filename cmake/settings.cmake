@@ -15,6 +15,51 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(IS_MSVC true)
 endif()
 
+macro(target_force_include_headers_impl target how)
+    foreach(ARG IN ITEMS ${ARGN})
+        if (NOT EXISTS ${ARG})
+            continue()
+        endif()
+
+        if (DEFINED IS_CLANGCL OR DEFINED IS_MSVC)
+            target_compile_options(${target} ${how} /FI "${ARG}")
+        else()
+            target_compile_options(${target} ${how} -include "${ARG}")
+        endif()
+    endforeach()
+endmacro()
+
+macro(target_force_include_headers target)
+    set(PARSE_OPTIONS)
+    set(PARSE_SINGLE)
+    set(PARSE_MULTI PUBLIC INTERFACE PRIVATE)
+    cmake_parse_arguments(
+        ARGS
+        "${PARSE_OPTIONS}"
+        "${PARSE_SINGLE}"
+        "${PARSE_MULTI}"
+        ${ARGN}
+    )
+
+    target_force_include_headers_impl(${target} PUBLIC    ${ARGS_PUBLIC})
+    target_force_include_headers_impl(${target} INTERFACE ${ARGS_INTERFACE})
+    target_force_include_headers_impl(${target} PRIVATE   ${ARGS_PRIVATE})
+endmacro()
+
+target_force_include_headers(hui PUBLIC fdsa asdf ffff)
+
+macro(check_precompiled_header target relative_path)
+    set(PRECOMPILED_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/include/${relative_path}")
+    if (EXISTS ${PRECOMPILED_HEADER})
+        message(STATUS "${target}: Found precompiled header at '${relative_path}'")
+        if (DEFINED IS_CLANGCL OR DEFINED IS_MSVC)
+            target_compile_options(${target} PUBLIC /FI ${PRECOMPILED_HEADER})
+        else()
+            target_compile_options(${target} PUBLIC -include ${PRECOMPILED_HEADER})
+        endif()
+    endif()
+endmacro()
+
 macro(setup target)
     # COMPILE
     # LINK
@@ -26,6 +71,7 @@ macro(setup target)
     # RELDEB_LINK
 
     if(DEFINED IS_CLANGCL OR DEFINED IS_MSVC)
+        message(STATUS "${target}: Initializing MSVC compiler/linker command-line")
 
         string(REGEX REPLACE "/Ob[12]"            "/Ob3" CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}")
         string(REGEX REPLACE "/Ob[12]"            "/Ob3" CMAKE_C_FLAGS_RELEASE          "${CMAKE_C_FLAGS_RELEASE}")
@@ -59,6 +105,7 @@ macro(setup target)
         set(RELDEB_COMPILE ${RELEASE_COMPILE})
         set(RELDEB_LINK    ${RELEASE_LINK})
     else()
+        message(STATUS "${target}: Initializing GCC compiler/linker command-line")
 
         # -Wno-macro-redefined
         # -Wno-address-of-temporary
@@ -74,10 +121,12 @@ macro(setup target)
             -fno-builtin
             -ffreestanding
             -fdiagnostics-absolute-paths
+            -ferror-limit=0
             -fmacro-backtrace-limit=0
             -fdiagnostics-color
             -nodefaultlibs
             -nostdlib
+            -Wno-microsoft-template
         )
         set(LINK LINKER:/subsystem:console,/entry:entry_point)
         set(DEBUG_COMPILE -Og -g -DCONFIG_RELEASE=0 -DCONFIG_DEBUG=1)
@@ -99,10 +148,12 @@ macro(setup target)
 
     set_target_properties(
         ${target} PROPERTIES
-        C_STANDARD 11
+        C_STANDARD 23
         C_EXTENSIONS ON
-        CXX_STANDARD 20
+        CXX_STANDARD 23
         CXX_EXTENSIONS ON
+        UNITY_BUILD ON
+        UNITY_BUILD_BATCH_SIZE 1000
     )
 
     target_include_directories(
@@ -111,6 +162,12 @@ macro(setup target)
         $<INSTALL_INTERFACE:include/>
     )
     target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+    
+    check_precompiled_header(${target} ${target}/${target}.hpp)
+    check_precompiled_header(${target} ${target}.hpp)
+
+    check_precompiled_header(${target} ${target}/${target}.h)
+    check_precompiled_header(${target} ${target}.h)
 endmacro()
 
 macro(make_static_library target)

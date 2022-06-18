@@ -12,7 +12,7 @@ void * module_handle()
 
 void * allocate(Int64 size)
 {
-    return cast(void*, HeapAlloc(ProcessHeap, 0, size));
+    return cast(void *, HeapAlloc(ProcessHeap, 0, size));
 }
 
 Bool reallocate(void * data, Int64 size)
@@ -36,10 +36,10 @@ extern Int Main();
 //   Only works on link.exe
 extern "C" IMAGE_DOS_HEADER __ImageBase;
 
-Int entry_point()  
+Int entry_point()
 {
-    ModuleHandle = cast(void*, &__ImageBase);
-    ProcessHeap = cast(void*, GetProcessHeap());
+    ModuleHandle = cast(void *, &__ImageBase);
+    ProcessHeap = cast(void *, GetProcessHeap());
 
     return Main();
 }

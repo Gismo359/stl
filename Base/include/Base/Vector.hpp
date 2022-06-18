@@ -31,11 +31,11 @@ protected:
     /**
      * @brief Internal setter for Vector::capacity()
      *
-     * @param capacity New capacity
+     * @param new_capacity New capacity
      */
-    inline void set_capacity(Uint64 capacity)
+    macro void set_capacity(Uint64 new_capacity)
     {
-        capacity_ = capacity;
+        capacity_ = new_capacity;
     }
 
     /**
@@ -43,30 +43,30 @@ protected:
      *
      * @param size
      */
-    inline void unsafe_resize(Uint64 size)
+    macro void unsafe_resize(Uint64 size)
     {
         reserve(size);
         set_size(size);
     }
 
     /**
-     * @brief
+     * @brief Attempt to reallocate the
      *
-     * @param capacity
+     * @param new_capacity
      * @return Bool
      */
-    inline Bool reallocate(Uint64 capacity)
+    macro Bool reallocate(Uint64 new_capacity)
     {
         mem::Block block{ data(), capacity_ * sizeof(T) };
-        if (allocator().grow(block, capacity * sizeof(T)))
+        if (allocator().reallocate(block, new_capacity * sizeof(T)))
         {
-            set_capacity(capacity);
+            set_capacity(new_capacity);
             return true;
         }
         return false;
     }
 
-    inline void deallocate()
+    macro void deallocate()
     {
         mem::Block block{ data(), capacity_ * sizeof(T) };
         allocator().deallocate(block);
@@ -76,7 +76,7 @@ public:
     /**
      * @return This instance's allocator
      */
-    inline A const & allocator() const
+    macro A const & allocator() const
     {
         return *allocator_;
     }
@@ -84,7 +84,7 @@ public:
     /**
      * @return This instance's allocator
      */
-    inline A & allocator()
+    macro A & allocator()
     {
         return *allocator_;
     }
@@ -92,53 +92,49 @@ public:
     /**
      * @return Number of elements this vector can hold before reallocating
      */
-    inline Uint64 capacity() const
+    macro Uint64 capacity() const
     {
         return capacity_;
     }
 
-    inline void reserve(Uint64 capacity)
+    macro void reserve(Uint64 new_capacity)
     {
-        if (capacity <= This::capacity())
+        if (new_capacity <= capacity())
         {
             return;
         }
 
-        if (reallocate(capacity))
+        if (reallocate(new_capacity))
         {
             return;
         }
 
-        mem::Block block = allocator().allocate(capacity * sizeof(T));
+        mem::Block block = allocator().allocate(new_capacity * sizeof(T));
         assert(block);
 
         Base span{ cast(Pointer, block.data), size() };
-        util::raw_move_range(data(), span.data(), size());
+        util::raw_move_range(span, *this);
         deallocate();
 
         set_data(span.data());
-        set_capacity(capacity);
+        set_capacity(new_capacity);
     }
 
-    inline void resize(Uint64 size, T const & value = T{})
+    macro void resize(Uint64 new_size, T const & value = T{})
     {
-        Uint64 current_size = This::size();
-        if (size <= current_size)
+        Uint64 old_size = size();
+        if (new_size <= old_size)
         {
-            for (auto & item : right(size))
+            right(new_size).iter(auto & item)
             {
                 item.~T();
-            }
-            set_size(size);
+            };
+            set_size(new_size);
         }
         else
         {
-            Uint64 old = current_size;
-            unsafe_resize(size);
-            for (auto & item : right(old))
-            {
-                new (&item) T(value);
-            }
+            unsafe_resize(new_size);
+            util::raw_fill_range(right(old_size), value);
         }
     }
 
@@ -147,9 +143,11 @@ public:
      *
      * @param item Object to insert
      */
-    inline void push_back(T item)
+    macro void push_back(T item)
     {
-        resize(size() + 1, std::move(item));
+        Uint64 old_size = size();
+        unsafe_resize(old_size + 1);
+        util::raw_move(at(old_size), item);
     }
 
     /**
@@ -158,16 +156,17 @@ public:
      * @param args Arguments, forwarded to the new object's constructor
      */
     template <typename ... Ts>
-    inline void emplace_back(Ts && ... args)
+    macro void emplace_back(Ts && ... args)
     {
-        unsafe_resize(size() + 1);
-        new (end() - 1) T(std::forward<Ts>(args)...);
+        Uint64 old_size = size();
+        unsafe_resize(old_size + 1);
+        util::raw_emplace(at(old_size), std::forward<Ts>(args)...);
     }
 
     /**
      * @brief Removes all elements from the array
      */
-    inline void clear()
+    macro void clear()
     {
         resize(0);
     }
@@ -175,13 +174,13 @@ public:
     /**
      * @brief Clears and deallocates the array
      */
-    inline void reset()
+    macro void reset()
     {
         clear();
         deallocate();
     }
 
-    inline void shrink_to_fit()
+    macro void shrink_to_fit()
     {
         if (size() == 0)
         {
@@ -189,7 +188,7 @@ public:
         }
         else
         {
-            reallocate(size())
+            reallocate(size());
         }
     }
 
@@ -198,7 +197,7 @@ public:
      *
      * @param allocator Pointer to allocator instance
      */
-    implicit Vector(A * allocator = A::instance()) : allocator_(allocator)
+    implicit macro Vector(A * allocator = A::instance()) : allocator_(allocator)
     {
     }
 
@@ -207,10 +206,10 @@ public:
      *
      * @param other Instance to copy from
      */
-    implicit Vector(Span<T> other, A * allocator = A::instance()) : Vector(allocator)
+    implicit macro Vector(Span<T> other, A * allocator = A::instance()) : Vector(allocator)
     {
         unsafe_resize(other.size());
-        util::raw_copy_range(other.data(), data(), size());
+        util::raw_copy_range(*this, other);
     }
 
     /**
@@ -218,7 +217,7 @@ public:
      *
      * @param other Instance to move from
      */
-    implicit Vector(Vector && other)
+    implicit macro Vector(Vector && other)
     {
         swap(*this, other);
     }
@@ -226,7 +225,7 @@ public:
     /**
      * @brief Destructor
      */
-    implicit ~Vector()
+    implicit macro ~Vector()
     {
         reset();
     }

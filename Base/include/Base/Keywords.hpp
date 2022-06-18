@@ -1,4 +1,13 @@
-#pragma once
+/**
+ * @file Keywords.hpp
+ * @author Daniel Atanasov (daniel.a.atanasov97@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2021-12-09
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 
 #define internal static
 #define global   static
@@ -40,6 +49,7 @@
 #define then << iterate
 #define reverse me() << iterate::trait<iterate::backward>{} << iterate
 #define iter me() << iterate::trait<iterate::none>{} << [&]
+#define apply me() << iterate::trait<iterate::none>{} << 
 
 #define macro inline __attribute__((always_inline))
 

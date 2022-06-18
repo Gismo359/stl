@@ -50,7 +50,7 @@ struct SystemAllocator
      * @param size Requested size of the allocation
      * @return An allocated block of memory
      */
-    mem::Block allocate(Int64 size)
+    mem::Block allocate(Uint64 size)
     {
         void * data = sys::allocate(size);
         if (data != null)
@@ -61,13 +61,13 @@ struct SystemAllocator
     }
 
     /**
-     * @brief Tries to grow a block of memory inplace
+     * @brief Tries to reallocate a block of memory inplace
      *
      * @param block A block of memory
      * @param size The new requested size of the block
-     * @return Whether the allocator was successful in growin the block
+     * @return Whether the allocator was successful in reallocatein the block
      */
-    Bool grow(mem::Block & block, Int64 size)
+    Bool reallocate(mem::Block & block, Uint64 size)
     {
         Bool success = sys::reallocate(block.data, size);
         if (success)
@@ -125,21 +125,21 @@ struct FallbackAllocator : private A, private B
     }
 
     /**
-     * @brief Tries to grow a block of memory inplace
+     * @brief Tries to reallocate a block of memory inplace
      *
      * @param block A block of memory
      * @param size The new requested size of the block
-     * @return Whether the allocator was successful in growin the block
+     * @return Whether the allocator was successful in reallocatein the block
      */
-    Bool grow(mem::Block & block, Int64 size)
+    Bool reallocate(mem::Block & block, Int64 size)
     {
         if (A::owns(block))
         {
-            return A::grow(block, size);
+            return A::reallocate(block, size);
         }
         else
         {
-            return B::grow(block, size);
+            return B::reallocate(block, size);
         }
     }
 
@@ -199,28 +199,28 @@ struct ThresholdAllocator : private A, private B
     }
 
     /**
-     * @brief Tries to grow a block of memory inplace
+     * @brief Tries to reallocate a block of memory inplace
      *
      * @param block A block of memory
      * @param size The new requested size of the block
-     * @return Whether the allocator was successful in growin the block
+     * @return Whether the allocator was successful in reallocatein the block
      */
-    Bool grow(mem::Block & block, Int64 size)
+    Bool reallocate(mem::Block & block, Int64 size)
     {
         if (block.size < T)
         {
             // NOTE@Daniel:
-            //   Do not allow a block from allocator A to grow past the threshold!
+            //   Do not allow a block from allocator A to reallocate past the threshold!
             if (size >= T)
             {
                 return false;
             }
 
-            return A::grow(block, size);
+            return A::reallocate(block, size);
         }
         else
         {
-            return B::grow(block, size);
+            return B::reallocate(block, size);
         }
     }
 

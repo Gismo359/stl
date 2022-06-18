@@ -1,3 +1,14 @@
+/**
+ * @file Iterate.hpp
+ * @author Daniel Atanasov (daniel.a.atanasov97@gmail.com)
+ * @brief Chained iterators support
+ * @version 0.1
+ * @date 2021-12-09
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
+
 namespace iterate
 {
 template <typename F, typename G>
@@ -7,7 +18,7 @@ private:
     F f_;
 
 public:
-    macro implicit visitor(F f) : f_(std::move(f))
+    macro implicit visitor(F f) : f_(std::reuse(f))
     {
     }
 
@@ -115,9 +126,12 @@ internal macro auto me()
 
 template <typename T, typename U, typename F>
 requires (!is_visitor_v<F> && !is_iterator_v<F> && !is_trait_v<F>)
-internal macro auto operator<<(iterator<T, trait<U>> it, F f)
+internal macro auto & operator<<(iterator<T, trait<U>> it, F f)
 {
-    return it.object()->operator<<(visitor<F, U>(std::move(f)));
+    assert(it.object() != null);
+
+    it.object()->operator<<(visitor<F, U>(std::reuse(f)));
+    return *it.object();
 }
 
 template <typename T, typename U>
@@ -137,13 +151,12 @@ internal macro auto operator<<(T && container, trait<none>)
 template <typename T, typename U, typename V>
 internal macro auto operator<<(iterator<T, trait<U>> it, trait<V>)
 {
-    if constexpr (std::is_same_v<V, none>)
-    {
-        return iterator<T, trait<U>> { it.object() };
-    }
-    else
-    {
-        return iterator<T, trait<V>> { it.object() };
-    }
+    return iterator<T, trait<V>> { it.object() };
+}
+
+template <typename T, typename U>
+internal macro auto operator<<(iterator<T, trait<U>> it, trait<none>)
+{
+    return iterator<T, trait<U>> { it.object() };
 }
 }

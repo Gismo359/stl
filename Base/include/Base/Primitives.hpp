@@ -1,4 +1,13 @@
-#pragma once
+/**
+ * @file Primitives.hpp
+ * @author Daniel Atanasov (daniel.a.atanasov97@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2021-12-10
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 
 using Int = int;
 

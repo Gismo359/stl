@@ -9,93 +9,103 @@
  * 
  */
 
-namespace util
+
+namespace std
 {
 template <typename T>
 struct Span;
+}
 
+namespace util
+{
 /**
  * @brief Swaps two objects of the same type
  * 
  * @param a First object
  * @param b Second object
  */
-template <typename T>
+template <meta::not_readonly T>
 void swap(T & a, T & b)
 {
-    T t = std::move(a);
-    a = std::move(b);
-    b = std::move(t);
+    T t = std::reuse(a);
+    a = std::reuse(b);
+    b = std::reuse(t);
+}
+
+template <meta::not_readonly T>
+void copy(T & a, T b)
+{
+    a = std::reuse(b);
+}
+
+template <meta::not_readonly T>
+void raw_copy(T & a, T b)
+{
+    new (&a) T(std::reuse(b));
+}
+
+template <meta::not_readonly T>
+void move(T & a, T & b)
+{
+    a = std::reuse(b);
+}
+
+template <meta::not_readonly T>
+void raw_move(T & a, T & b)
+{
+    new (&a) T(std::reuse(b));
+}
+
+template <meta::not_readonly T, typename ... Ts>
+void emplace(T & a, Ts ... args)
+{
+    a = T(std::forward<Ts>(args)...);
+}
+
+template <meta::not_readonly T, typename ... Ts>
+void raw_emplace(T & a, Ts ... args)
+{
+    new (&a) T(std::forward<Ts>(args)...);
 }
 
 // TODO@Daniel:
 //   These algorithms should check whether the two regions intersect
 
-/**
- * @brief Moves an array of objects to another address
- * 
- * @param a Source address
- * @param b Destination address
- * @param size Length of both blocks
- */
 template <typename T>
-void move_range(T * a, T * b, Uint64 size)
+void fill_range(T * a, Uint64 size, T const & value)
 {
     for (Uint64 idx = 0; idx < size; ++idx)
     {
-        b[idx] = std::move(a[idx]);
+        util::copy(a[idx], value);
     }
 }
 
-/**
- * @brief Moves objects from one span to another
- * 
- * @param a Source span
- * @param b Destination span
- */
 template <typename T>
-void move_range(Span<T> a, Span<T> b)
+void fill_range(std::Span<T> a, T const & value)
 {
-    assert(a.size() == b.size());
-
-    move_range(a.data(), b.data(), a.size());
+    fill_range(a.data(), a.size(), value);
 }
 
-/**
- * @brief Moves an array of objects to uninitialized memory
- * 
- * @param a Source address
- * @param b Destination address
- * @param size Length of both blocks
- */
 template <typename T>
-void raw_move_range(T * a, T * b, Uint64 size)
+void raw_fill_range(T * a, Uint64 size, T const & value)
 {
     for (Uint64 idx = 0; idx < size; ++idx)
     {
-        new (&b[idx]) T(std::move(a[idx]));
+        util::raw_copy(a[idx], value);
     }
 }
 
-/**
- * @brief Moves objects from one span to a span of unitialized memory
- * 
- * @param a Source span
- * @param b Destination span
- */
 template <typename T>
-void raw_move_range(Span<T> a, Span<T> b)
+void raw_fill_range(std::Span<T> a, T const & value)
 {
-    assert(a.size() == b.size());
-
-    raw_move_range(a.data(), b.data(), a.size());
+    raw_fill_range(a.data(), a.size(), value);
 }
 
 /**
  * @brief Copies an array of objects to another address
  * 
- * @param a Source address
- * @param b Destination address
+ * @param a Destination address
+ * @param b Source address
  * @param size Length of both blocks
  */
 template <typename T>
@@ -103,29 +113,29 @@ void copy_range(T * a, T * b, Uint64 size)
 {
     for (Uint64 idx = 0; idx < size; ++idx)
     {
-        b[idx] = a[idx];
+        util::copy(a[idx], b[idx]);
     }
 }
 
 /**
  * @brief Copies objects from one span to another
  * 
- * @param a Source span
- * @param b Destination span
+ * @param a Destination span
+ * @param b Source span
  */
 template <typename T>
-void copy_range(Span<T> a, Span<T> b)
+void copy_range(std::Span<T> a, std::Span<T> b)
 {
     assert(a.size() == b.size());
 
-    copy_range(a.data(), b.data(), a.data());
+    util::copy_range(a.data(), b.data(), a.data());
 }
 
 /**
  * @brief Copies an array of objects to uninitialized memory
  * 
- * @param a Source address
- * @param b Destination address
+ * @param a Destination address
+ * @param b Source address
  * @param size Length of both blocks
  */
 template <typename T>
@@ -133,21 +143,81 @@ void raw_copy_range(T * a, T * b, Uint64 size)
 {
     for (Uint64 idx = 0; idx < size; ++idx)
     {
-        new (&b[idx]) T(a[idx]);
+        util::raw_copy(a[idx], b[idx]);
     }
 }
 
 /**
  * @brief Copies objects from one span to a span of unitialized memory
  * 
- * @param a Source span
- * @param b Destination span
+ * @param a Destination span
+ * @param b Source span
  */
 template <typename T>
-void raw_copy_range(Span<T> a, Span<T> b)
+void raw_copy_range(std::Span<T> a, std::Span<T> b)
 {
     assert(a.size() == b.size());
 
-    raw_copy_range(a.data(), b.data(), a.size());
+    util::raw_copy_range(a.data(), b.data(), a.size());
+}
+
+/**
+ * @brief Moves an array of objects to another address
+ * 
+ * @param a Destination address
+ * @param b Destination address
+ * @param size Length of both blocks
+ */
+template <meta::not_readonly T>
+void move_range(T * a, T * b, Uint64 size)
+{
+    for (Uint64 idx = 0; idx < size; ++idx)
+    {
+        util::move(a[idx], b[idx]);
+    }
+}
+
+/**
+ * @brief Moves objects from one span to another
+ * 
+ * @param a Destination span
+ * @param b Source span
+ */
+template <typename T>
+void move_range(std::Span<T> a, std::Span<T> b)
+{
+    assert(a.size() == b.size());
+
+    util::move_range(a.data(), b.data(), a.size());
+}
+
+/**
+ * @brief Moves an array of objects to uninitialized memory
+ * 
+ * @param a Destination address
+ * @param b Source address
+ * @param size Length of both blocks
+ */
+template <typename T>
+void raw_move_range(T * a, T * b, Uint64 size)
+{
+    for (Uint64 idx = 0; idx < size; ++idx)
+    {
+        util::raw_move(a[idx], b[idx]);
+    }
+}
+
+/**
+ * @brief Moves objects from one span to a span of unitialized memory
+ * 
+ * @param a Destination span
+ * @param b Source span
+ */
+template <typename T>
+void raw_move_range(std::Span<T> a, std::Span<T> b)
+{
+    assert(a.size() == b.size());
+
+    util::raw_move_range(a.data(), b.data(), a.size());
 }
 }
