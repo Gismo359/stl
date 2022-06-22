@@ -4,16 +4,16 @@
  * @brief A view of an array of objects
  * @version 0.1
  * @date 2021-12-07
- * 
+ *
  * @copyright Copyright (c) 2021
- * 
+ *
  */
 
 namespace std
 {
 /**
  * @brief A view of an array of objects
- * 
+ *
  * @tparam T Type of underlying objects
  */
 template <typename T>
@@ -31,12 +31,12 @@ public:
 
 private:
     Pointer data_ = null;
-    Uint64 size_ = 0;
+    u64 size_ = 0;
 
 protected:
     /**
      * @brief Internal setter for Span::data()
-     * 
+     *
      * @param data New pointer to first element
      */
     macro void set_data(Pointer data)
@@ -46,10 +46,10 @@ protected:
 
     /**
      * @brief Internal setter for Span::size()
-     * 
+     *
      * @param data New size
      */
-    macro void set_size(Uint64 size)
+    macro void set_size(u64 size)
     {
         size_ = size;
     }
@@ -57,17 +57,17 @@ protected:
 public:
     /**
      * @brief Construct a new Span object
-     * 
+     *
      * @param data Pointer to the first element in the span
      * @param size Number of elements in this span
      */
-    implicit macro Span(Pointer data, Uint64 size) : data_(data), size_(size)
+    implicit macro Span(Pointer data, u64 size) : data_(data), size_(size)
     {
     }
 
     /**
      * @brief Construct a new Span object
-     * 
+     *
      * @param begin Pointer to the first element in the span
      * @param end Pointer to one past the last element in the span
      */
@@ -78,9 +78,17 @@ public:
     /**
      * @return Number of elements in this span
      */
-    macro Uint64 size() const
+    macro u64 size() const
     {
         return size_;
+    }
+
+    /**
+     * @return Whether this span is empty or not
+     */
+    macro bool empty() const
+    {
+        return size() == 0;
     }
 
     /**
@@ -132,47 +140,61 @@ public:
     }
 
     /**
-     * @param idx 
+     * @param idx
      * @return Item at index idx
      */
-    macro ConstReference at(Int64 idx) const
+    macro ConstReference at(i64 idx) const
     {
         assert(idx >= 0);
-        
+        assert(idx < size());
+
         return data_[idx];
     }
 
     /**
-     * @param idx 
+     * @param idx
      * @return Item at index idx
      */
-    macro Reference at(Int64 idx)
+    macro Reference at(i64 idx)
     {
         assert(idx >= 0);
-        
+        assert(idx < size());
+
         return data_[idx];
     }
 
     /**
-     * @param idx 
+     * @param idx
      * @return Item at index idx
      */
-    macro ConstReference operator[](Int64 idx) const
+    macro ConstReference operator[](i64 idx) const
     {
         assert(idx >= 0);
-        
+        assert(idx < size());
+
         return at(idx);
     }
 
     /**
-     * @param idx 
+     * @param idx
      * @return Item at index idx
      */
-    macro Reference operator[](Int64 idx)
+    macro Reference operator[](i64 idx)
     {
         assert(idx >= 0);
-        
+        assert(idx < size());
+
         return at(idx);
+    }
+
+    macro Span<T const> copy() const
+    {
+        return *this;
+    }
+
+    macro Span<T> copy()
+    {
+        return *this;
     }
 
     /**
@@ -180,7 +202,7 @@ public:
      * @param stop
      * @return Sub-span from start to stop
      */
-    macro Span<T const> middle(Int64 start, Int64 stop) const
+    macro Span<T const> middle(i64 start, i64 stop) const
     {
         assert(start <= stop);
         assert(start >= 0);
@@ -194,7 +216,7 @@ public:
      * @param stop
      * @return Sub-span from start to stop
      */
-    macro Span<T> middle(Int64 start, Int64 stop)
+    macro Span<T> middle(i64 start, i64 stop)
     {
         assert(start <= stop);
         assert(start >= 0);
@@ -207,10 +229,10 @@ public:
      * @param stop
      * @return Sub-span from beginning to stop
      */
-    macro Span<T const> left(Int64 stop) const
+    macro Span<T const> left(i64 stop) const
     {
         assert(stop >= 0);
-        
+
         return middle(0, stop);
     }
 
@@ -218,10 +240,10 @@ public:
      * @param stop
      * @return Sub-span from beginning to stop
      */
-    macro Span<T> left(Int64 stop)
+    macro Span<T> left(i64 stop)
     {
         assert(stop >= 0);
-        
+
         return middle(0, stop);
     }
 
@@ -229,10 +251,10 @@ public:
      * @param start
      * @return Sub-span from start to the end
      */
-    macro Span<T const> right(Int64 start) const
+    macro Span<T const> right(i64 start) const
     {
         assert(start >= 0);
-        
+
         return middle(start, size_);
     }
 
@@ -240,10 +262,10 @@ public:
      * @param start
      * @return Sub-span from start to the end
      */
-    macro Span<T> right(Int64 start)
+    macro Span<T> right(i64 start)
     {
         assert(start >= 0);
-        
+
         return middle(start, size_);
     }
 
@@ -257,12 +279,20 @@ public:
         return *this;
     }
 
+    implicit macro operator Span<T const>() const
+    {
+        return copy();
+    }
+
     template <typename F>
     macro void operator<<(iterate::visitor<F, iterate::forward> f) const
     {
         T * b = data();
         T * e = data() + size();
-        while (b != e) f(*b++);
+        while (b != e)
+        {
+            f(*b++);
+        }
     }
 
     template <typename F>
@@ -270,7 +300,10 @@ public:
     {
         T * b = data();
         T * e = data() + size();
-        while (b != e) f(*b++);
+        while (b != e)
+        {
+            f(*b++);
+        }
     }
 
     template <typename F>
@@ -278,7 +311,10 @@ public:
     {
         T * b = data();
         T * e = data() + size();
-        while (b != e) f(*--e);
+        while (b != e)
+        {
+            f(*--e);
+        }
     }
 
     template <typename F>
@@ -286,14 +322,17 @@ public:
     {
         T * b = data();
         T * e = data() + size();
-        while (b != e) f(*--e);
+        while (b != e)
+        {
+            f(*--e);
+        }
     }
 
     /**
      * @brief Default copy assignment operator
      */
     macro Span<T> & operator=(Span const & other) = default;
-    
+
     /**
      * @brief Default move assignment operator
      */
@@ -308,7 +347,7 @@ public:
      * @brief Default copy constructor
      */
     implicit macro Span(Span const & other) = default;
-    
+
     /**
      * @brief Default move constructor
      */

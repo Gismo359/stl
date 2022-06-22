@@ -4,9 +4,9 @@
  * @brief Chained iterators support
  * @version 0.1
  * @date 2021-12-09
- * 
+ *
  * @copyright Copyright (c) 2021
- * 
+ *
  */
 
 namespace iterate
@@ -18,18 +18,18 @@ private:
     F f_;
 
 public:
-    macro implicit visitor(F f) : f_(std::reuse(f))
+    implicit macro visitor(F f) : f_(std::reuse(f))
     {
     }
 
-    template <typename ... Ts>
-    macro auto operator()(Ts && ... args) const
+    template <typename... Ts>
+    macro auto operator()(Ts &&... args) const
     {
         return f_(std::forward<Ts>(args)...);
     }
 
-    template <typename ... Ts>
-    macro auto operator()(Ts && ... args)
+    template <typename... Ts>
+    macro auto operator()(Ts &&... args)
     {
         return f_(std::forward<Ts>(args)...);
     }
@@ -121,11 +121,11 @@ struct backward
 
 internal macro auto me()
 {
-    return trait<none>{};
+    return trait<none> {};
 }
 
 template <typename T, typename U, typename F>
-requires (!is_visitor_v<F> && !is_iterator_v<F> && !is_trait_v<F>)
+requires (not is_visitor_v<F> && not is_iterator_v<F> && not is_trait_v<F>)
 internal macro auto & operator<<(iterator<T, trait<U>> it, F f)
 {
     assert(it.object() != null);
@@ -135,14 +135,14 @@ internal macro auto & operator<<(iterator<T, trait<U>> it, F f)
 }
 
 template <typename T, typename U>
-requires (!is_visitor_v<T> && !is_iterator_v<T> && !is_trait_v<T>)
+requires (not is_visitor_v<T> && not is_iterator_v<T> && not is_trait_v<T>)
 internal macro auto operator<<(T && container, trait<U>)
 {
     return iterator<std::noref_t<T>, trait<U>> { &container };
 }
 
 template <typename T>
-requires (!is_visitor_v<T> && !is_iterator_v<T> && !is_trait_v<T>)
+requires (not is_visitor_v<T> && not is_iterator_v<T> && not is_trait_v<T>)
 internal macro auto operator<<(T && container, trait<none>)
 {
     return iterator<std::noref_t<T>, trait<forward>> { &container };

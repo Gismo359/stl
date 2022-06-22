@@ -24,7 +24,7 @@ struct Allocator
      * @param size Requested size of the allocation
      * @return An allocated block of memory
      */
-    mem::Block allocate(Int64 size);
+    mem::Block allocate(i64 size);
 
     /**
      * @brief Tries to reallocate a block of memory inplace
@@ -33,7 +33,7 @@ struct Allocator
      * @param size The new requested size of the block
      * @return Whether the allocator was successful in reallocatein the block
      */
-    Bool reallocate(mem::Block & block, Int64 size);
+    bool reallocate(mem::Block & block, i64 size);
 
     /**
      * @brief Destroy and invalidate a block of memory
@@ -46,7 +46,7 @@ struct Allocator
      * @param block A block of memory
      * @return Whether the block has been allocated by this allocator
      */
-    Bool owns(mem::Block & block);
+    bool owns(mem::Block & block);
 };
 ```
 
@@ -73,7 +73,7 @@ struct FallbackAllocator : private A, private B
      * @param size Requested size of the allocation
      * @return An allocated block of memory
      */
-    mem::Block allocate(Int64 size)
+    mem::Block allocate(i64 size)
     {
         mem::Block block = A::allocate(size);
         if (block)
@@ -90,7 +90,7 @@ struct FallbackAllocator : private A, private B
      * @param size The new requested size of the block
      * @return Whether the allocator was successful in reallocatein the block
      */
-    Bool reallocate(mem::Block & block, Int64 size)
+    bool reallocate(mem::Block & block, i64 size)
     {
         if (A::owns(block))
         {
@@ -123,7 +123,7 @@ struct FallbackAllocator : private A, private B
      * @param block A block of memory
      * @return Whether the block has been allocated by this allocator
      */
-    Bool owns(mem::Block & block)
+    bool owns(mem::Block & block)
     {
         return A::owns(block) or B::owns(block);
     }

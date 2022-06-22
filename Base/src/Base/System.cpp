@@ -1,5 +1,7 @@
 #include <Windows.h>
 
+// #include <charconv>
+
 internal void * ModuleHandle;
 internal void * ProcessHeap;
 
@@ -10,12 +12,12 @@ void * module_handle()
     return ModuleHandle;
 }
 
-void * allocate(Int64 size)
+void * allocate(i64 size)
 {
     return cast(void *, HeapAlloc(ProcessHeap, 0, size));
 }
 
-Bool reallocate(void * data, Int64 size)
+bool reallocate(void * data, i64 size)
 {
     if (data == null)
     {
@@ -30,13 +32,13 @@ void deallocate(void * ptr)
 }
 }
 
-extern Int Main();
+extern int Main();
 
 // NOTE@Daniel:
 //   Only works on link.exe
 extern "C" IMAGE_DOS_HEADER __ImageBase;
 
-Int entry_point()
+int entry_point()
 {
     ModuleHandle = cast(void *, &__ImageBase);
     ProcessHeap = cast(void *, GetProcessHeap());

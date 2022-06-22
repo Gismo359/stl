@@ -1,96 +1,89 @@
-// #include <Windows.h>
+/**
+ * @file File.cpp
+ * @author Daniel Atanasov (daniel.a.atanasov97@gmail.com)
+ * @brief
+ * @version 0.1
+ * @date 2022-06-19
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 
-// Bool FILE_Open(File * file, String * filename)
-// {
-//     assert(file != null);
+#include <Windows.h>
 
-//     File f = CreateFileA(
-//         filename->data,
-//         GENERIC_WRITE | GENERIC_READ,
-//         0,
-//         NULL,
-//         OPEN_ALWAYS,
-//         FILE_ATTRIBUTE_NORMAL,
-//         NULL
-//     );
+namespace io
+{
+void File::open(char * filename)
+{
+    assert(filename != null);
 
-//     Bool success = f != INVALID_HANDLE_VALUE;
-//     if (success)
-//     {
-//         *file = f;
-//     }
-//     return success;
-// }
+    HANDLE result = CreateFileA(
+        filename,
+        GENERIC_WRITE | GENERIC_READ,
+        0,
+        null,
+        OPEN_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        null
+    );
 
-// Bool FILE_Size(File * file, Int64 * size)
-// {
-//     assert(file != null);
-//     assert(*file != null);
-//     assert(size != null);
+    if (result != INVALID_HANDLE_VALUE)
+    {
+        handle = result;
+    }
+}
 
-//     Uint64 s = 0;
-//     Bool success = GetFileSizeEx(*file, &s);
-//     if (success)
-//     {
-//         *size = s;
-//     }
-//     return success;
-// }
+i64 File::exact_size()
+{
+    i64 size;
+    if (GetFileSizeEx(handle, cast(PLARGE_INTEGER, &size)))
+    {
+        return size;
+    }
+    return -1;
+}
 
-// Bool FILE_MoveCursor(File * file, Int64 amount, MoveMethod how)
-// {
-//     assert(file != null);
-//     assert(*file != null);
+i64 File::read(std::Span<byte> data, i64 offset)
+{
+    if (data.empty())
+    {
+        return 0;
+    }
 
-//     Int32 method = FILE_BEGIN;
-//     switch (how)
-//     {
-//     case FILE_MoveFromStart:   method = FILE_BEGIN;   break;
-//     case FILE_MoveFromCurrent: method = FILE_CURRENT; break;
-//     case FILE_MoveFromEnd:     method = FILE_END;     break;
-//     }
+    OVERLAPPED ov = { 0 };
+    ov.Pointer = cast(void *, offset);
 
-//     LARGE_INTEGER i;
-//     i.QuadPart = amount;
+    i64 size = 0;
+    if (ReadFile(handle, data.data(), data.size(), null, &ov))
+    {
+        return size;
+    }
+    return -1;
+}
 
-//     return SetFilePointerEx(*file, i, null, method);
-// }
+i64 File::write(std::Span<byte const> data, i64 offset)
+{
+    if (data.empty())
+    {
+        return 0;
+    }
 
-// Bool FILE_Read(File * file, Buffer buffer, Uint64 size)
-// {
-//     assert(file != null);
-//     assert(*file != null);
+    OVERLAPPED ov = { 0 };
+    ov.Pointer = cast(void *, offset);
 
-//     Uint32 sizeRead = 0;
-//     Bool success = ReadFile(*file, buffer, size, &sizeRead, NULL);
+    i64 size = 0;
+    if (WriteFile(handle, data.data(), data.size(), null, &ov))
+    {
+        return size;
+    }
+    return -1;
+}
 
-//     return success && sizeRead == size;
-// }
-
-// Bool FILE_Write(File * file, Buffer buffer, Uint64 size)
-// {
-//     assert(file != null);
-//     assert(*file != null);
-
-//     Uint32 sizeRead = 0;
-//     Bool success = WriteFile(*file, buffer, size, &sizeRead, NULL);
-
-//     return success && sizeRead == size;
-// }
-
-// Bool FILE_Close(File * file)
-// {
-//     assert(file != null);
-
-//     if (file == null)
-//     {
-//         return true;
-//     }
-
-//     Bool success = CloseHandle(*file);
-//     if (success)
-//     {
-//         *file = null;
-//     }
-//     return success;
-// }
+File::~File()
+{
+    if (handle != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(handle);
+    }
+}
+}

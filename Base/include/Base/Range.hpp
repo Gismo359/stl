@@ -11,7 +11,7 @@
 
 namespace std
 {
-template <typename T = Int64>
+template <typename T = i64>
 struct Range
 {
 private:
@@ -47,7 +47,8 @@ public:
      * @param stop End of this range, exclusive
      * @param step Increment of this range
      */
-    implicit constexpr macro Range(T start, T stop, T step) : start(start), stop(stop), step(step)
+    implicit constexpr macro Range(T start, T stop, T step) :
+        start(start), stop(stop), step(step)
     {
         assert(step != 0);
         assert(stop == start || math::sign(stop - start) == math::sign(step));
@@ -59,7 +60,8 @@ public:
      * @param start Beginning of this range, inclusive
      * @param stop End of this range, exclusive
      */
-    implicit constexpr macro Range(T start, T stop) : Range(start, stop, math::sign(stop - start))
+    implicit constexpr macro Range(T start, T stop) :
+        Range(start, stop, math::sign(stop - start))
     {
     }
 

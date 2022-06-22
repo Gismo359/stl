@@ -1,22 +1,50 @@
 ﻿---
 BasedOnStyle: Microsoft
 AccessModifierOffset: '-4'
+AlignAfterOpenBracket: BlockIndent
+AlignArrayOfStructures: Left
+AlignConsecutiveMacros:
+  Enabled: 'true'
+  AcrossEmptyLines: 'false'
+  AcrossComments: 'false'
+AllowAllArgumentsOnNextLine: 'false'
+AllowAllConstructorInitializersOnNextLine: 'false'
+AllowAllParametersOfDeclarationOnNextLine: 'false'
+AllowShortBlocksOnASingleLine: Always
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
 AlwaysBreakTemplateDeclarations: 'Yes'
+AttributeMacros: ['not']
+BinPackArguments: 'false'
+BinPackParameters: 'false'
 BreakBeforeTernaryOperators: 'true'
 BreakConstructorInitializers: AfterColon
+ColumnLimit: 90
 Cpp11BracedListStyle: 'false'
+ExperimentalAutoDetectBinPacking: 'false'
 FixNamespaceComments: 'false'
 IncludeBlocks: Preserve
 IndentCaseLabels: 'false'
 IndentPPDirectives: BeforeHash
+IndentRequiresClause: 'false'
 IndentWidth: '4'
 Language: Cpp
 NamespaceIndentation: None
+PenaltyBreakAssignment: 20000
+PenaltyBreakBeforeFirstCallParameter: 0
+PenaltyBreakOpenParenthesis: 0
+PenaltyReturnTypeOnItsOwnLine: 20000
 PointerAlignment: Middle
+ReflowComments: 'false'
 SortIncludes: 'false'
 SortUsingDeclarations: 'false'
 SpaceAfterTemplateKeyword: 'true'
 SpaceBeforeCpp11BracedList: 'true'
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: 'true'
+  AfterRequiresInClause: 'true'
+  AfterRequiresInExpression: 'true'
 SpacesInContainerLiterals: 'true'
 Standard: Cpp11
 TabWidth: '4'

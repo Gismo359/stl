@@ -1,6 +1,6 @@
 // #include <Windows.h>
 
-// Bool __debuggerpresent()
+// bool __debuggerpresent()
 // {
 //     return IsDebuggerPresent();
 // }
