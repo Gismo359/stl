@@ -162,3 +162,18 @@ then::reverse::iter(int & i)
     i *= 10
 };
 ```
+
+## Building and running
+
+The only supported configuration is on `Windows` with `clang` (`clang 16` in my case, though some previous versions might also work).
+Since the base project is incompatible with the standard library (and, therefore, with anything that relies on it), the `Test` and `Benchmark` targets are placeholders which cannot be run/built.
+
+To configure the project with cmake run the following:
+```sh
+cmake -B build -DCMAKE_MAKE_PROGRAM=<path-to-ninja> -DCMAKE_C_COMPILER:FILEPATH=<path-to-clang> -DCMAKE_CXX_COMPILER:FILEPATH=<path-to-clang++> -G "Ninja"
+```
+
+You can either build with ninja or invoke cmake to do it for you:
+```sh
+cmake --build build --config Debug
+```
